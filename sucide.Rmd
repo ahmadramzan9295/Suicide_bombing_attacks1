@@ -1,0 +1,80 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+```r
+library(readr)
+library(dplyr)
+library(ggplot2)
+
+data <- read_csv("/cloud/project/Suicide_bombing_attacks.csv")
+
+str(data)
+data <- data %>%
+  mutate(Year = as.numeric(substring(Date, nchar(Date)-3, nchar(Date))))
+Plot the Number of Attacks per Year
+
+ggplot(data, aes(x = Year)) +
+  geom_bar() +
+  labs(title = "Number of Suicide Bombing Attacks Over Time", x = "Year", y = "Number of Attacks")
+
+# Number of attacks by city
+city_attack_count <- data %>%
+  group_by(City) %>%
+  summarise(Count = n())
+
+ggplot(city_attack_count, aes(x = reorder(City, Count), y = Count)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(title = "Number of Attacks by City", x = "City", y = "Number of Attacks")
+
+# Number of attacks by province
+province_attack_count <- data %>%
+  group_by(Province) %>%
+  summarise(Count = n())
+
+ggplot(province_attack_count, aes(x = reorder(Province, Count), y = Count)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Number of Attacks by Province", x = "Province", y = "Number of Attacks")
+
+# Sum the casualties for each year
+casualty_summary <- data %>%
+  group_by(Year) %>%
+  summarise(Killed_Max = sum(as.numeric(Killed_Max), na.rm = TRUE),
+            Injured_Max = sum(as.numeric(Injured_Max), na.rm = TRUE))
+
+# Plot the number of casualties
+ggplot(casualty_summary, aes(x = Year)) +
+  geom_line(aes(y = Killed_Max, color = "Killed Max")) +
+  geom_line(aes(y = Injured_Max, color = "Injured Max")) +
+  labs(title = "Casualties from Suicide Bombing Attacks Over Time", x = "Year", y = "Number of Casualties")
+
+# Number of attacks by day type
+day_type_count <- data %>%
+  group_by(Blast_Day_Type) %>%
+  summarise(Count = n())
+
+ggplot(day_type_count, aes(x = Blast_Day_Type, y = Count)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Number of Attacks by Blast Day Type", x = "Day Type", y = "Number of Attacks")
+
+sect_targeting <- data %>%
+  filter(!is.na(Targeted_Sect_if_any)) %>%
+  group_by(Targeted_Sect_if_any) %>%
+  summarise(Count = n())
+
+ggplot(sect_targeting, aes(x = reorder(Targeted_Sect_if_any, Count), y = Count)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(title = "Number of Attacks Targeting Different Sects", x = "Targeted Sect", y = "Number of Attacks")
+
+# Convert temperature columns to numeric
+data <- data %>%
+  mutate(Temperature_C = as.numeric(Temperature_C),
+         Temperature_F = as.numeric(Temperature_F))
+
+# Plot temperature distribution
+ggplot(data, aes(x = Temperature_C)) +
+  geom_histogram(binwidth = 1) +
+  labs(title = "Temperature Distribution During Attacks (Celsius)", x = "Temperature (C)", y = "Frequency")```
